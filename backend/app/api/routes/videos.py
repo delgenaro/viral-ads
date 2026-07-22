@@ -44,15 +44,15 @@ async def from_url(body: GenerateFromUrlRequest):
         try:
             result = await generate_video_from_url(str(body.product_url), body.duration_seconds)
             task_id = result.get("taskId") or result.get("id", "")
-            update_video(task["id"], status="processing", external_id=task_id)
+            task = update_video(task["id"], status="processing", external_id=task_id)
         except Exception as e:
-            update_video(task["id"], status="error", error=str(e))
+            task = update_video(task["id"], status="error", error=str(e))
     else:
-        update_video(task["id"], status="demo", url="https://example.com/demo-video.mp4")
-
+        task = update_video(task["id"], status="demo", url="https://www.w3schools.com/html/mov_bbb.mp4")
     return VideoResponse(
         id=task["id"],
         status=task["status"],
+        url=task.get("url"),
         created_at=task["created_at"],
         duration_seconds=body.duration_seconds,
     )
@@ -65,15 +65,15 @@ async def from_photo(body: GenerateFromPhotoRequest):
         try:
             result = await generate_video_from_photo(body.product_image, body.script_text, body.duration_seconds)
             task_id = result.get("taskId") or result.get("id", "")
-            update_video(task["id"], status="processing", external_id=task_id)
+            task = update_video(task["id"], status="processing", external_id=task_id)
         except Exception as e:
-            update_video(task["id"], status="error", error=str(e))
+            task = update_video(task["id"], status="error", error=str(e))
     else:
-        update_video(task["id"], status="demo", url="https://example.com/demo-photo-video.mp4")
-
+        task = update_video(task["id"], status="demo", url="https://www.w3schools.com/html/mov_bbb.mp4")
     return VideoResponse(
         id=task["id"],
         status=task["status"],
+        url=task.get("url"),
         created_at=task["created_at"],
         duration_seconds=body.duration_seconds,
     )
@@ -86,15 +86,15 @@ async def clone(body: CloneAdRequest):
         try:
             result = await clone_ad_from_reference(str(body.reference_url), str(body.product_url or body.reference_url))
             task_id = result.get("taskId") or result.get("id", "")
-            update_video(task["id"], status="processing", external_id=task_id)
+            task = update_video(task["id"], status="processing", external_id=task_id)
         except Exception as e:
-            update_video(task["id"], status="error", error=str(e))
+            task = update_video(task["id"], status="error", error=str(e))
     else:
-        update_video(task["id"], status="demo", url="https://example.com/demo-clone-video.mp4")
-
+        task = update_video(task["id"], status="demo", url="https://www.w3schools.com/html/mov_bbb.mp4")
     return VideoResponse(
         id=task["id"],
         status=task["status"],
+        url=task.get("url"),
         created_at=task["created_at"],
         duration_seconds=10,
     )
@@ -108,14 +108,15 @@ async def generate(body: GenerateCombinedRequest):
             from app.services.pollo_api import generate_avatar_talking_head
             result = await generate_avatar_talking_head(body.avatar_image, body.script_text or "Confira este produto incrível!", body.duration_seconds)
             task_id = result.get("taskId") or result.get("id", "")
-            update_video(task["id"], status="processing", external_id=task_id)
+            task = update_video(task["id"], status="processing", external_id=task_id)
         except Exception as e:
-            update_video(task["id"], status="error", error=str(e))
+            task = update_video(task["id"], status="error", error=str(e))
     else:
-        update_video(task["id"], status="demo", url="https://example.com/demo-video.mp4")
+        task = update_video(task["id"], status="demo", url="https://www.w3schools.com/html/mov_bbb.mp4")
     return VideoResponse(
         id=task["id"],
         status=task["status"],
+        url=task.get("url"),
         created_at=task["created_at"],
         duration_seconds=body.duration_seconds,
     )
