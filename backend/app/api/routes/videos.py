@@ -5,6 +5,7 @@ from app.models.schemas import (
     GenerateFromUrlRequest,
     GenerateFromPhotoRequest,
     CloneAdRequest,
+    GenerateCombinedRequest,
 )
 from app.services.video_service import (
     create_video_task,
@@ -96,6 +97,27 @@ async def clone(body: CloneAdRequest):
         status=task["status"],
         created_at=task["created_at"],
         duration_seconds=10,
+    )
+
+
+@router.post("/generate", response_model=VideoResponse)
+async def generate(body: GenerateCombinedRequest):
+    task = create_video_task(body.model_dump())
+    if settings.pollo_api_key:
+        try:
+            from app.services.pollo_api import generate_avatar_talking_head
+            result = await generate_avatar_talking_head(body.avatar_image, body.script_text or "Confira este produto incrível!", body.duration_seconds)
+            task_id = result.get("taskId") or result.get("id", "")
+            update_video(task["id"], status="processing", external_id=task_id)
+        except Exception as e:
+            update_video(task["id"], status="error", error=str(e))
+    else:
+        update_video(task["id"], status="demo", url="https://example.com/demo-video.mp4")
+    return VideoResponse(
+        id=task["id"],
+        status=task["status"],
+        created_at=task["created_at"],
+        duration_seconds=body.duration_seconds,
     )
 
 

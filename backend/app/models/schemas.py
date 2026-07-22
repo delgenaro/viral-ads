@@ -87,3 +87,10 @@ class CloneAdRequest(BaseModel):
     reference_url: HttpUrl
     product_url: Optional[HttpUrl] = None
     avatar_id: Optional[str] = None
+
+
+class GenerateCombinedRequest(BaseModel):
+    avatar_image: str
+    product_image: str
+    script_text: str = ""
+    duration_seconds: int = 10
