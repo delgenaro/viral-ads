@@ -1,24 +1,20 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
+import { Image, UserSquare2, Sparkles, X } from "lucide-react";
 
 export default function HomePage() {
+  const [prompt, setPrompt] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [productUrl, setProductUrl] = useState("");
-  const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<string | null>(null);
-  const [step, setStep] = useState<"form" | "result">("form");
-
-  const avatarInput = useRef<HTMLInputElement>(null);
-  const productInput = useRef<HTMLInputElement>(null);
 
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!avatarUrl || !productUrl) return;
+    if (!prompt || !avatarUrl || !productUrl) return;
     setLoading(true);
     setResult(null);
-
     try {
       const res = await fetch("/api/videos/generate", {
         method: "POST",
@@ -26,124 +22,150 @@ export default function HomePage() {
         body: JSON.stringify({
           avatar_image: avatarUrl,
           product_image: productUrl,
-          script_text: description,
+          script_text: prompt,
           duration_seconds: 10,
         }),
       });
       const json = await res.json();
       setResult(json.url || "https://example.com/demo-video.mp4");
-      setStep("result");
     } catch {
       setResult("https://example.com/demo-video.mp4");
-      setStep("result");
     } finally {
       setLoading(false);
     }
   };
 
-  const reset = () => {
-    setStep("form");
-    setResult(null);
-    setAvatarUrl("");
-    setProductUrl("");
-    setDescription("");
-  };
-
-  if (step === "result") {
-    return (
-      <div className="max-w-sm mx-auto px-4 pt-12 text-center">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden mb-6">
-          <video src={result!} controls className="w-full aspect-[9/16] object-contain bg-black" />
-        </div>
-        <button onClick={reset} className="w-full bg-violet-600 hover:bg-violet-500 text-white py-3 rounded-lg font-medium transition-colors">
-          Criar novo anúncio
-        </button>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-lg mx-auto px-4 pt-10 pb-16">
-      <h1 className="text-lg font-bold mb-1">Criar anúncio</h1>
-      <p className="text-sm text-zinc-500 mb-8">Adicione uma foto de pessoa, uma foto do produto e descreva o que falar.</p>
+    <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="flex items-center gap-2 mb-6">
+        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center text-xs font-bold">V</div>
+        <span className="text-sm font-semibold">ViralAds</span>
+      </div>
 
-      <form onSubmit={handleGenerate} className="space-y-5">
-        <div>
-          <label className="text-xs text-zinc-500 mb-1.5 block">Foto da pessoa (avatar)</label>
-          <div className="flex gap-2">
-            <input
-              ref={avatarInput}
-              type="url"
-              value={avatarUrl}
-              onChange={e => setAvatarUrl(e.target.value)}
-              placeholder="https://..."
-              className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-violet-500"
-            />
-            {avatarUrl && (
-              <div className="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden shrink-0 border border-zinc-700">
-                <img src={avatarUrl} alt="" className="w-full h-full object-cover" onError={e => (e.target as HTMLElement).style.display = "none"} />
+      <div className="grid md:grid-cols-5 gap-6">
+        <div className="md:col-span-3 space-y-4">
+          <h1 className="text-lg font-semibold">Criar anúncio com avatar</h1>
+
+          <form onSubmit={handleGenerate} className="space-y-4">
+            <div className="bg-[#131316] border border-[#232326] rounded-xl overflow-hidden">
+              <textarea
+                value={prompt}
+                onChange={e => setPrompt(e.target.value)}
+                placeholder="Descreva sua ideia, cole um link ou escreva o roteiro do anúncio..."
+                rows={6}
+                className="w-full bg-transparent border-0 px-4 pt-4 pb-2 text-sm placeholder:text-[#444] focus:outline-none resize-none"
+              />
+              <div className="px-4 pb-3 flex items-center gap-2 text-[10px] text-[#444] border-t border-[#1a1a1e] pt-3">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded bg-[#1c1c20] flex items-center justify-center">
+                    <Image size={10} className="text-[#666]" />
+                  </div>
+                  Imagem
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded bg-[#1c1c20] flex items-center justify-center">
+                    <Sparkles size={10} className="text-[#666]" />
+                  </div>
+                  IA
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex-1">
+                <div className="bg-[#131316] border border-[#232326] rounded-xl p-3 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-[#1c1c20] flex items-center justify-center shrink-0">
+                    <UserSquare2 size={18} className="text-[#666]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {avatarUrl ? (
+                      <div className="flex items-center gap-2">
+                        <img src={avatarUrl} alt="" className="w-7 h-7 rounded object-cover" />
+                        <span className="text-xs text-[#888] truncate">Avatar adicionado</span>
+                        <button type="button" onClick={() => setAvatarUrl("")} className="ml-auto text-[#555] hover:text-white text-xs">×</button>
+                      </div>
+                    ) : (
+                      <input
+                        type="url"
+                        value={avatarUrl}
+                        onChange={e => setAvatarUrl(e.target.value)}
+                        placeholder="URL da foto (pessoa)"
+                        className="w-full bg-transparent text-xs placeholder:text-[#444] focus:outline-none"
+                      />
+                    )}
+                  </div>
+                </div>
+                <p className="text-[10px] text-[#444] mt-1 ml-1">Avatar</p>
+              </div>
+
+              <div className="flex-1">
+                <div className="bg-[#131316] border border-[#232326] rounded-xl p-3 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-[#1c1c20] flex items-center justify-center shrink-0">
+                    <Image size={18} className="text-[#666]" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    {productUrl ? (
+                      <div className="flex items-center gap-2">
+                        <img src={productUrl} alt="" className="w-7 h-7 rounded object-cover" />
+                        <span className="text-xs text-[#888] truncate">Produto adicionado</span>
+                        <button type="button" onClick={() => setProductUrl("")} className="ml-auto text-[#555] hover:text-white text-xs">×</button>
+                      </div>
+                    ) : (
+                      <input
+                        type="url"
+                        value={productUrl}
+                        onChange={e => setProductUrl(e.target.value)}
+                        placeholder="URL da foto (produto)"
+                        className="w-full bg-transparent text-xs placeholder:text-[#444] focus:outline-none"
+                      />
+                    )}
+                  </div>
+                </div>
+                <p className="text-[10px] text-[#444] mt-1 ml-1">Produto</p>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setAvatarUrl("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200")}
+                className="text-[10px] text-[#555] hover:text-[#888] px-2 py-1 rounded bg-[#1a1a1e] transition-colors"
+              >
+                👤 Exemplo avatar
+              </button>
+              <button
+                type="button"
+                onClick={() => setProductUrl("https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200")}
+                className="text-[10px] text-[#555] hover:text-[#888] px-2 py-1 rounded bg-[#1a1a1e] transition-colors"
+              >
+                👟 Exemplo produto
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading || !prompt || !avatarUrl || !productUrl}
+              className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-25 disabled:cursor-not-allowed text-white py-3 rounded-xl font-medium text-sm transition-all active:scale-[0.99]"
+            >
+              {loading ? "Gerando..." : "Criar"}
+            </button>
+          </form>
+        </div>
+
+        <div className="md:col-span-2">
+          <div className="bg-[#131316] border border-[#232326] rounded-xl aspect-[9/16] flex items-center justify-center">
+            {result ? (
+              <video src={result} controls className="w-full h-full rounded-xl object-contain" />
+            ) : (
+              <div className="text-center px-6">
+                <div className="w-12 h-12 rounded-xl bg-[#1c1c20] flex items-center justify-center mx-auto mb-3">
+                  <Sparkles size={22} className="text-[#444]" />
+                </div>
+                <p className="text-xs text-[#444]">Pré-visualização</p>
+                <p className="text-[10px] text-[#333] mt-1">Preencha os campos e clique em Criar</p>
               </div>
             )}
           </div>
-        </div>
-
-        <div>
-          <label className="text-xs text-zinc-500 mb-1.5 block">Foto do produto</label>
-          <div className="flex gap-2">
-            <input
-              ref={productInput}
-              type="url"
-              value={productUrl}
-              onChange={e => setProductUrl(e.target.value)}
-              placeholder="https://..."
-              className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-violet-500"
-            />
-            {productUrl && (
-              <div className="w-10 h-10 rounded-lg bg-zinc-800 overflow-hidden shrink-0 border border-zinc-700">
-                <img src={productUrl} alt="" className="w-full h-full object-cover" onError={e => (e.target as HTMLElement).style.display = "none"} />
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div>
-          <label className="text-xs text-zinc-500 mb-1.5 block">Descrição do anúncio</label>
-          <textarea
-            value={description}
-            onChange={e => setDescription(e.target.value)}
-            rows={4}
-            placeholder="Ex: Este produto é perfeito para quem busca qualidade e estilo. Mostre como ele funciona no dia a dia..."
-            className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-violet-500 resize-none"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading || !avatarUrl || !productUrl}
-          className="w-full bg-violet-600 hover:bg-violet-500 disabled:opacity-30 disabled:cursor-not-allowed text-white py-3 rounded-lg font-medium transition-colors"
-        >
-          {loading ? "Gerando..." : "Gerar anúncio"}
-        </button>
-      </form>
-
-      <div className="mt-8 border-t border-zinc-800 pt-5">
-        <p className="text-xs text-zinc-600 mb-3">Exemplos de imagens para testar:</p>
-        <div className="flex flex-wrap gap-2 text-xs">
-          <button onClick={() => setAvatarUrl("https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200")} className="px-2.5 py-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors">
-            👤 Pessoa 1
-          </button>
-          <button onClick={() => setAvatarUrl("https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200")} className="px-2.5 py-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors">
-            👤 Pessoa 2
-          </button>
-          <button onClick={() => setProductUrl("https://images.unsplash.com/photo-1549298916-b41d501d3772?w=200")} className="px-2.5 py-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors">
-            👟 Tênis
-          </button>
-          <button onClick={() => setProductUrl("https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=200")} className="px-2.5 py-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors">
-            🧴 Perfume
-          </button>
-          <button onClick={() => setProductUrl("https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200")} className="px-2.5 py-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors">
-            ⌚ Relógio
-          </button>
         </div>
       </div>
     </div>
